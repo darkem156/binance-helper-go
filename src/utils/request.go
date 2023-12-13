@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +13,7 @@ import (
 	"time"
 )
 
-func (client *Client) SendPublicRequest(uri string, params map[string]string) ([]byte, error) {
+func (client *Client) SendPublicRequest(endpoint string, params map[string]string) (interface{}, error) {
 	queryParams := map[string]string{}
 	for key := range params {
 		queryParams[key] = params[key]
@@ -26,7 +27,7 @@ func (client *Client) SendPublicRequest(uri string, params map[string]string) ([
 
 	queryString := urlValues.Encode()
 
-	finalURL := client.BaseEndpoint + uri + "?" + queryString
+	finalURL := client.BaseEndpoint + endpoint + "?" + queryString
 
 	var httpClient http.Client
 
@@ -47,10 +48,16 @@ func (client *Client) SendPublicRequest(uri string, params map[string]string) ([
 		return nil, err
 	}
 
-	return body, nil
+	var res interface{}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
-func (client *Client) SendSignedRequest(uri string, params map[string]string, method string) ([]byte, error) {
+func (client *Client) SendSignedRequest(endpoint string, params map[string]string, method string) (interface{}, error) {
 	queryParams := map[string]string{
 		"recvWindow": "5000",
 		"timestamp":  fmt.Sprintf("%d", time.Now().UnixNano()/1000000),
@@ -73,7 +80,7 @@ func (client *Client) SendSignedRequest(uri string, params map[string]string, me
 
 	signature := hex.EncodeToString(hash.Sum(nil))
 
-	finalURL := client.BaseEndpoint + uri + "?" + queryString + "&signature=" + signature
+	finalURL := client.BaseEndpoint + endpoint + "?" + queryString + "&signature=" + signature
 
 	var httpClient http.Client
 
@@ -97,5 +104,11 @@ func (client *Client) SendSignedRequest(uri string, params map[string]string, me
 		return nil, err
 	}
 
-	return body, nil
+	var res interface{}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

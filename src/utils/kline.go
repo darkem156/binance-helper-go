@@ -1,16 +1,13 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 )
 
 func (client *Client) Klines(symbol string, interval string, limit int) Klines {
-	res, _ := client.SendPublicRequest("/fapi/v1/klines", map[string]string{"symbol": symbol, "interval": interval, "limit": fmt.Sprint(limit)})
+	lines, err := client.SendPublicRequest("/fapi/v1/klines", map[string]string{"symbol": symbol, "interval": interval, "limit": fmt.Sprint(limit)})
 
-	var lines [][]interface{}
-	err := json.Unmarshal(res, &lines)
 	if err != nil {
 		fmt.Println(err)
 		return Klines{}
@@ -18,7 +15,7 @@ func (client *Client) Klines(symbol string, interval string, limit int) Klines {
 
 	klines := Klines{}
 
-	for _, line := range lines {
+	for _, line := range lines.([][]interface{}) {
 		klines.OpenTime = append(klines.OpenTime, int64(line[0].(float64)))
 		open, _ := strconv.ParseFloat(line[1].(string), 64)
 		klines.Open = append([]float64{open}, klines.Open...)
