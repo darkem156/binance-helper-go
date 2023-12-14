@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (client *Client) Klines(symbol string, interval string, limit int) Klines {
+func (client *Client) Klines(symbol string, interval string, limit int, onlyClosed bool) Klines {
 	lines, err := client.SendPublicRequest("/fapi/v1/klines", map[string]string{"symbol": symbol, "interval": interval, "limit": fmt.Sprint(limit)})
 
 	if err != nil {
@@ -14,8 +14,14 @@ func (client *Client) Klines(symbol string, interval string, limit int) Klines {
 	}
 
 	klines := Klines{}
+	var usedLines interface{}
+	if onlyClosed {
+		usedLines = lines.([]interface{})[len(lines.([]interface{}))-limit:]
+	} else {
+		usedLines = lines.([]interface{})
+	}
 
-	for _, line := range lines.([]interface{}) {
+	for _, line := range usedLines.([]interface{}) {
 		line := line.([]interface{})
 		klines.OpenTime = append(klines.OpenTime, int64(line[0].(float64)))
 		open, _ := strconv.ParseFloat(line[1].(string), 64)

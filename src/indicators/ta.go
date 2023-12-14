@@ -6,7 +6,7 @@ type Kline struct {
 	utils.Klines
 }
 
-func Ta(symbol, interval string, limit int) Kline {
+func Ta(symbol, interval string, limit int, onlyClosed bool) Kline {
 	client := utils.Client{ApiKey: "", SecretKey: "", BaseEndpoint: "https://fapi.binance.com"}
-	return Kline{client.Klines(symbol, interval, limit)}
+	return Kline{client.Klines(symbol, interval, limit, onlyClosed)}
 }
