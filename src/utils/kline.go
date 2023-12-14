@@ -15,7 +15,8 @@ func (client *Client) Klines(symbol string, interval string, limit int) Klines {
 
 	klines := Klines{}
 
-	for _, line := range lines.([][]interface{}) {
+	for _, line := range lines.([]interface{}) {
+		line := line.([]interface{})
 		klines.OpenTime = append(klines.OpenTime, int64(line[0].(float64)))
 		open, _ := strconv.ParseFloat(line[1].(string), 64)
 		klines.Open = append([]float64{open}, klines.Open...)
